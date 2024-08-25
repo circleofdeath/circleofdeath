@@ -1,1 +1,1 @@
-# circleofdeath
+Info here: https://circleofdeath.github.io/circleofdeath/
