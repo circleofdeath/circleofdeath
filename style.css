@@ -1,6 +1,7 @@
 * {
     margin: 0;
     padding: 0;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
 body {
@@ -27,6 +28,31 @@ button {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+}
+
+.green_scala_side_right {
+    background-image: url('green_scala_part_right.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    width: 400px;
+    height: 350px;
+
+    position: relative;
+    top: 0px;
+    left: -90px;
+    z-index: -1;
+}
+
+.green_scala_side_right > h2 {
+    padding-left: 120px;
+}
+
+.green_scala_side_right > div {
+    width: 240px;
+    height: 238px;
+    padding-top: 10px;
+    padding-left: 110px;
+    overflow: auto;
 }
 
 .green_scala {
@@ -86,7 +112,7 @@ button {
 
 .main_content {
     padding: 5px;
-    border: 5px lime solid;
+    border: 5px red solid;
     background-color: blue;
 }
 
