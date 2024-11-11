@@ -1,0 +1,8 @@
+mov rav, 1, 1
+mov rbv, 1, 0
+mov rcv, 2, Hello,\ world!
+int 0x80
+
+mov rav, 1, 0
+mov rbv, 1, 0
+int 0x80
