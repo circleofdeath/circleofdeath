@@ -38,14 +38,13 @@ class AssemblyContext {
 
         let cmd = line.substring(0, line.indexOf(' '));
         line = line.substring(line.indexOf(' '));        
-        let args = line.split(', ').map(arg => arg.replace(',\\', ','));
-        console.log(cmd, args);
+        let args = line.split(', ').map(arg => arg.replace(',\\', ',').trim());
         asm_commands[cmd](this, args);
     }
 
     run() {
         this.pointer = 0;
-        while(this.pointer != this.lines.length) {
+        while(this.pointer < this.lines.length) {
             this.readLine(this.lines[this.pointer]);
             this.pointer++;
         }
@@ -60,23 +59,73 @@ class AssemblyContext {
     }
 }
 
+commands['0x90'] = function(asm) {
+    asm.rav = asm.raw[asm.rbv];
+};
+
 commands['0x80'] = function(asm) {
-    if(asm.rav === 0) {               // SYS_EXIT
+    if(asm.rav === 0) {                         // SYS_EXIT
         asm.exit(asm.rbv);
-    } else if(asm.rav === 1) {        // SYS_LOG
+    } else if(asm.rav === 1) {                  // SYS_LOG
         if(asm.rbv === 0) {
-            console.log(asm.rcv);
+            console.log(asm.rcv);               // LOG INFO
         } else if(asm.rbv === 1) {
-            console.warn(asm.rcv);
+            console.warn(asm.rcv);              // LOG WARN
         } else if(asm.rbv === 2) {
-            console.error(asm.rcv);
+            console.error(asm.rcv);             // LOG ERROR
+        } else if(asm.rbv === 3) {
+            asm_vars['page'].innerHTML += asm.rcv; // LOG STDOUT
         } else {
             asm.exit(EXIT_CODE_RBV_404);
         }
-    } else {                          // SYS_ERROR_404
+    } else {                                    // SYS_ERROR_404
         asm.exit(EXIT_CODE_RAV_404);
     }
 };
+
+asm_commands['adg'] = function(asm, args) {
+    let [key, value] = [args[0], args[1]];
+
+    if(value === "rav") {
+        value = asm.rav;
+    } else if(value === "rbv") {
+        value = asm.rbv;
+    } else if(value === "rcv") {
+        value = asm.rcv;
+    } else if(value === "rdv") {
+        value = asm.rdv;
+    } else {
+        value = asm_vars[value];
+    }
+
+    if(key === "rav") {
+        asm.rav += value;
+    } else if(key === "rbv") {
+        asm.rbv += value;
+    } else if(key === "rcv") {
+        asm.rcv += value;
+    } else if(key === "rdv") {
+        asm.rdv += value;
+    } else {
+        asm_vars[key] += value;
+    }
+}
+
+asm_commands['add'] = function(asm, args) {
+    let [key, value] = [args[0], args[1]];
+
+    if(key === "rav") {
+        asm.rav += value;
+    } else if(key === "rbv") {
+        asm.rbv += value;
+    } else if(key === "rcv") {
+        asm.rcv += value;
+    } else if(key === "rdv") {
+        asm.rdv += value;
+    } else {
+        asm_vars[key] += value;
+    }
+}
 
 asm_commands['mov'] = function(asm, args) {
     let [key, type, value] = [args[0], args[1], args[2]];
@@ -107,6 +156,9 @@ asm_commands['mov'] = function(asm, args) {
     } else if(type === "rdv") {
         value = asm.rdv;
         type = asm.rdv_type;
+    } else {
+        value = asm_vars[type];
+        type = TYPE_OBJECT;
     }
 
     switch(key) {
@@ -126,6 +178,8 @@ asm_commands['mov'] = function(asm, args) {
             asm.rdv = value;
             asm.rdv_type = type;
             break;
+        default:
+            asm_vars[key] = value;
     }
 };
 
@@ -139,6 +193,7 @@ asm_commands['goto'] = function(asm, args) {
 
 asm_vars['win'] = window;
 asm_vars['doc'] = document;
+asm_vars['page'] = document.getElementById("asm_stdout");
 
 async function read(file) {
     const response = await fetch(file);
@@ -152,13 +207,13 @@ async function read(file) {
 }
 
 async function load(package) {
-    console.log(`Running package ${package}`);
     const context = await read(`${package}.jasm`);
     let ctx = new AssemblyContext();
     ctx.lines = context
             .split("\n")
             .map(line => line.trim())
-            .filter(line => line.length > 0);
+            .filter(line => line.length > 0)
+            .filter(line => !line.startsWith(';'));
 
     try {
         ctx.run();

@@ -1,6 +1,27 @@
 mov rav, 1, 1
-mov rbv, 1, 0
-mov rcv, 2, Hello,\ world!
+mov rbv, 1, 1
+mov rcv, 2, !!! UNDER CONSTRUCTION !!!
+int 0x80
+
+mov buffer, 2, <div style="
+add buffer, background-image: url('under_construction.png');
+add buffer, background-repeat: repeat-x;
+add buffer, width: 100vw;
+add buffer, height: 25px;
+add buffer, "></div>
+
+mov rav, 1, 1
+mov rbv, 1, 3
+mov rcv, buffer
+add rcv, <div style="
+add rcv, background-color: #000000;
+add rcv, width: 100vw;
+add rcv, height: 50px;
+add rcv, "><h1 style="
+add rcv, color: #ffff00;
+add rcv, text-align: center;
+add rcv, ">UNDER CONSTRUCTION</h1></div>
+adg rcv, buffer
 int 0x80
 
 mov rav, 1, 0

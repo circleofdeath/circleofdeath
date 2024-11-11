@@ -1,21 +1,26 @@
 <!DOCTYPE HTML>
-<title>DAE/circleofdeath</title>
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-    }
+<head>
+    <title>DAE/circleofdeath</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
 
-    #output {
-        display: hidden;
-        width: 0;
-        height: 0;
-    }
-</style>
-<div id="output"></div>
-<script src="./jasm.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        load("main");
-    });
-</script>
+        #output {
+            display: hidden;
+            width: 0;
+            height: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="output"></div>
+    <div id="asm_stdout"></div>
+    <script src="./jasm.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            load("main");
+        });
+    </script>
+</body>
