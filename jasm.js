@@ -9,9 +9,17 @@ const EXIT_CODE_FAILURE = 1;
 const EXIT_CODE_RAV_404 = 2;
 const EXIT_CODE_RBV_404 = 3;
 
+let buffer = '';
 let asm_vars = {};
 let commands = {};
 let asm_commands = {};
+
+function syncOperation(fn) {
+    return new Promise((resolve) => {
+        fn();
+        resolve();
+    })
+}
 
 class AssemblyContext {
     constructor() {
@@ -46,7 +54,7 @@ class AssemblyContext {
         this.pointer = 0;
         while(this.pointer < this.lines.length) {
             this.readLine(this.lines[this.pointer]);
-            this.pointer++;
+            this.pointer++
         }
     }
 
@@ -63,21 +71,28 @@ commands['0x90'] = function(asm) {
     asm.rav = asm.raw[asm.rbv];
 };
 
-commands['0x80'] = function(asm) {
+commands['0x80'] = async function(asm) {
     if(asm.rav === 0) {                         // SYS_EXIT
         asm.exit(asm.rbv);
     } else if(asm.rav === 1) {                  // SYS_LOG
-        if(asm.rbv === 0) {
-            console.log(asm.rcv);               // LOG INFO
-        } else if(asm.rbv === 1) {
-            console.warn(asm.rcv);              // LOG WARN
-        } else if(asm.rbv === 2) {
-            console.error(asm.rcv);             // LOG ERROR
-        } else if(asm.rbv === 3) {
-            asm_vars['page'].innerHTML += asm.rcv; // LOG STDOUT
-        } else {
-            asm.exit(EXIT_CODE_RBV_404);
-        }
+        await syncOperation(() => {
+            if(asm.rbv === 0) {
+                console.log(asm.rcv);                   // LOG INFO
+            } else if(asm.rbv === 1) {
+                console.warn(asm.rcv);                  // LOG WARN
+            } else if(asm.rbv === 2) {
+                console.error(asm.rcv);                 // LOG ERROR
+            } else if(asm.rbv === 3) {
+                buffer += asm.rcv;                      // LOG STDOUT
+            } else {
+                asm.exit(EXIT_CODE_RBV_404);
+            }
+        });
+    } else if(asm.rav === 2) {                  // SYS_INCLUDE
+        load(asm.rbv);
+    } else if(asm.rav === 3) {                  // SYS_FLUSH
+        asm_vars['page'].innerHTML += buffer;
+        buffer = '';
     } else {                                    // SYS_ERROR_404
         asm.exit(EXIT_CODE_RAV_404);
     }
@@ -195,19 +210,21 @@ asm_vars['win'] = window;
 asm_vars['doc'] = document;
 asm_vars['page'] = document.getElementById("asm_stdout");
 
-async function read(file) {
-    const response = await fetch(file);
-        
-    if(!response.ok) {
+function read(file) {
+    // must be synced this because not fetch()
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", `${file}`, false);
+    xhr.send();
+
+    if(xhr.status === 200) {
+        return xhr.responseText;
+    } else {
         console.error(`Failed to load ${file}`);
         return '';
     }
-
-    return await response.text();
 }
 
-async function load(package) {
-    const context = await read(`${package}.jasm`);
+function doString(context) {
     let ctx = new AssemblyContext();
     ctx.lines = context
             .split("\n")
@@ -220,4 +237,8 @@ async function load(package) {
     } catch(err) {
         console.error(`Failed to run ${package}.jasm: ${err}`);
     }
+}
+
+function load(package) {
+    doString(read(`${package}.jasm`));
 }
